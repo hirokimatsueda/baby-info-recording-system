@@ -1,0 +1,160 @@
+﻿@page "/"
+@using BlazorApp.Shared
+@inject HttpClient Http
+
+<h1>赤ちゃんうんち記録</h1>
+
+@if (poops == null)
+{
+    <p><em>読み込み中...</em></p>
+}
+else
+{
+    <div class="input-group mb-3">
+        <span class="input-group-text">赤ちゃんID</span>
+        <input id="userId" type="text" class="form-control" @bind="@userId" />
+    </div>
+    <div class="container">
+        <button class="btn btn-light" @onclick="Prev">&lt;</button>
+        <span>@currentYearMonth.Year 年 @currentYearMonth.Month 月</span>
+        <button class="btn btn-light" @onclick="Next">&gt;</button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table text-nowrap">
+            <tr>
+                <th class="h-100 text-center border text-danger fw-bold" style="width:15%">日</th>
+                <th class="h-100 text-center border text-secondary fw-bold" style="width:14%">月</th>
+                <th class="h-100 text-center border text-secondary fw-bold" style="width:14%">火</th>
+                <th class="h-100 text-center border text-secondary fw-bold" style="width:14%">水</th>
+                <th class="h-100 text-center border text-secondary fw-bold" style="width:14%">木</th>
+                <th class="h-100 text-center border text-secondary fw-bold" style="width:14%">金</th>
+                <th class="h-100 text-center border text-primary fw-bold" style="width:15%">土</th>
+            </tr>
+            @for (int row = 0; row < 6; row++)
+            {
+                <tr>
+                    @for (int col = 0; col < 7; col++)
+                    {
+                        <td class="text-center border">
+                            @{
+                                if (firstDateOfCalendar.HasValue)
+                                {
+                                    var offset = row * 7 + col;
+                                    var currentDate = firstDateOfCalendar.Value.AddDays(offset);
+                                    if (currentDate.Month == currentYearMonth.Month)
+                                    {
+
+                                        var currentDatePoop = poops.FirstOrDefault(p => p.Date == currentDate);
+                                        var poopIcons = "";
+                                        PutPoopRequest addPoopRequest = null;
+                                        PutPoopRequest subPoopRequest = null;
+                                        if (currentDatePoop != null && currentDatePoop.Count > 0)
+                                        {
+                                            poopIcons = string.Concat(Enumerable.Repeat("💩", currentDatePoop.Count));
+                                            addPoopRequest = new PutPoopRequest
+                                            {
+                                                Date = currentDate,
+                                                UserId = userId,
+                                                Count = currentDatePoop.Count + 1
+                                            };
+                                            subPoopRequest = new PutPoopRequest
+                                            {
+                                                Date = currentDate,
+                                                UserId = userId,
+                                                Count = currentDatePoop.Count - 1
+                                            };
+                                        }
+                                        else
+                                        {
+                                            addPoopRequest = new PutPoopRequest
+                                            {
+                                                Date = currentDate,
+                                                UserId = userId,
+                                                Count = 1
+                                            };
+                                        }
+
+                                        <span class="d-block text-secondary fs-6">@currentDate.Day</span>
+
+
+                                        <div class="container">
+                                            <div class="row">
+                                                <div class="col-8 text-wrap">@poopIcons</div>
+                                                <div class="col-4">
+                                                    <div class="btn-group-vertical">
+                                                        <button type="button" class="btn btn-light btn-sm" @onclick="() => Put(addPoopRequest)">+</button>
+                                                        @if (subPoopRequest != null)
+                                                        {
+                                                            <button type="button" class="btn btn-light btn-sm" @onclick="() => Put(subPoopRequest)">-</button>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </table>
+    </div>
+}
+
+@code {
+    DateTime currentYearMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    string userId = "1";
+    private Poop[] poops = new Poop[] { };
+    DateTime? firstDateOfCalendar = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+
+    private async Task Prev()
+    {
+        currentYearMonth = currentYearMonth.AddMonths(-1);
+        await Refresh();
+        StateHasChanged();
+    }
+
+    private async Task Next()
+    {
+        currentYearMonth = currentYearMonth.AddMonths(1);
+        await Refresh();
+        StateHasChanged();
+    }
+
+    private async Task Put(PutPoopRequest request)
+    {
+        try
+        {
+            var requestPath = $"api/PutPoop";
+            await Http.PutAsJsonAsync(requestPath, request);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+        await Refresh();
+    }
+
+    private async Task Refresh()
+    {
+        firstDateOfCalendar = currentYearMonth.AddDays(-(int)(currentYearMonth.DayOfWeek));
+
+        try
+        {
+            var requestPath = $"api/GetPoops?userId={userId}&year={currentYearMonth.Year}&month={currentYearMonth.Month}";
+            poops = await Http.GetFromJsonAsync<Poop[]>(requestPath) ?? new Poop[] { };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+        StateHasChanged();
+    }
+}
