@@ -2,6 +2,9 @@
 
 namespace BlazorApp.Shared
 {
+    /// <summary>
+    /// うんち変更リクエスト
+    /// </summary>
     public class PutPoopRequest
     {
         /// <summary>

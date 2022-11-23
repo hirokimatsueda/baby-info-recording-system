@@ -3,6 +3,9 @@ using System;
 
 namespace BlazorApp.Shared
 {
+    /// <summary>
+    /// Cosmos DB上のうんち表現
+    /// </summary>
     public class Poop
     {
         /// <summary>

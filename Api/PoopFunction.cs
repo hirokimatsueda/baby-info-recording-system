@@ -17,6 +17,9 @@ using System.Web.Http;
 
 namespace BlazorApp.Api
 {
+    /// <summary>
+    /// Ç§ÇÒÇøëÄçÏFunctions
+    /// </summary>
     public static class PoopFunction
     {
         private static Lazy<CosmosClient> lazyClient = new Lazy<CosmosClient>(InitializeCosmosClient);
@@ -35,7 +38,7 @@ namespace BlazorApp.Api
         /// <returns></returns>
         [FunctionName("GetPoops")]
         public static async Task<IActionResult> GetAsync(
-           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+           [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req, ILogger log)
         {
             log.LogInformation("GetPoops function processed a request.");
 
@@ -92,7 +95,7 @@ namespace BlazorApp.Api
         /// <param name="log"></param>
         /// <returns></returns>
         [FunctionName("PutPoop")]
-        public static async Task<IActionResult> Post([HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Post([HttpTrigger(AuthorizationLevel.Anonymous, "put")] HttpRequest req, ILogger log)
         {
             log.LogInformation("AddPoop function processed a request.");
 

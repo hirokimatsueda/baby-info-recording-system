@@ -132,7 +132,7 @@ else
     {
         try
         {
-            var requestPath = $"api/PutPoop";
+            var requestPath = $"/api/PutPoop";
             await Http.PutAsJsonAsync(requestPath, request);
         }
         catch (Exception ex)
@@ -148,7 +148,7 @@ else
 
         try
         {
-            var requestPath = $"api/GetPoops?userId={userId}&year={currentYearMonth.Year}&month={currentYearMonth.Month}";
+            var requestPath = $"/api/GetPoops?userId={userId}&year={currentYearMonth.Year}&month={currentYearMonth.Month}";
             poops = await Http.GetFromJsonAsync<Poop[]>(requestPath) ?? new Poop[] { };
         }
         catch (Exception ex)
